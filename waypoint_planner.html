@@ -1275,11 +1275,23 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
 });
 
 /* ═══ MAP ═══════════════════════════════════════════════════════ */
-const tileSat = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19, attribution: '&copy; Esri' });
-const tileLabels = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}{r}.png', { subdomains: 'abcd', maxZoom: 19, pane: 'overlayPane' });
-const tileStreet = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { subdomains: 'abcd', maxZoom: 20, attribution: '&copy; OSM &copy; CARTO' });
+// All layers are key-free Esri services (CARTO basemaps now return an "API key required" tile).
+// The Canvas and label services have no data past z16/z17, so Leaflet upscales those tiles instead.
+const ESRI = 'https://server.arcgisonline.com/ArcGIS/rest/services/';
+const esriTile = (svc, opts) => L.tileLayer(ESRI + svc + '/MapServer/tile/{z}/{y}/{x}', Object.assign({ maxZoom: 20 }, opts));
+const tileSat = esriTile('World_Imagery', { maxNativeZoom: 19, attribution: '&copy; Esri, Maxar, Earthstar Geographics' });
+const tileLabels = esriTile('Reference/World_Boundaries_and_Places', { maxNativeZoom: 17, pane: 'labels' });
+const tileStreet = L.layerGroup([
+  esriTile('Canvas/World_Dark_Gray_Base', { maxNativeZoom: 16, attribution: '&copy; Esri, HERE, Garmin, &copy; OpenStreetMap contributors' }),
+  esriTile('Canvas/World_Dark_Gray_Reference', { maxNativeZoom: 16, pane: 'labels' }),
+]);
 
-const map = L.map('map', { center: [20, 0], zoom: 2, zoomControl: false, layers: [tileSat, tileLabels] });
+const map = L.map('map', { center: [20, 0], zoom: 2, maxZoom: 20, zoomControl: false });
+// Labels sit above the basemap but below mission paths and markers, and never eat clicks.
+map.createPane('labels');
+map.getPane('labels').style.zIndex = 350;
+map.getPane('labels').style.pointerEvents = 'none';
+tileSat.addTo(map); tileLabels.addTo(map);
 L.control.zoom({ position: 'bottomright' }).addTo(map);
 
 let currentLayer = 'sat-labels';
