@@ -57,11 +57,17 @@ All messages use `$PAYLOAD*CHECKSUM\n` framing with XOR checksum. Commands from 
 ## File Structure
 
 ```
-final-boat.py      — Boat controller firmware
-final-shore.py     — Shore station firmware  
-final-pod.py       — Underwater pod firmware
-waypoints.json     — Mission definitions and home waypoint
+boat-pico.py           — Boat controller firmware
+shore-pico.py          — Shore station firmware
+pod-pico.py            — Underwater pod firmware
+waypoint_planner.html  — Browser mission planner; exports waypoints.json
+wrangler.jsonc         — Cloudflare Workers config for hosting the planner
 ```
+
+`waypoints.json` (mission definitions and home waypoint) is not committed. Build it in the
+planner, export it, and copy it onto the Shore Pico, where `shore-pico.py` loads it.
+The planner is hosted at https://dreamsv1.kylegtran2007.workers.dev/ and
+https://ka1e27.github.io/D.R.E.A.M.S-V1/waypoint_planner.html.
 
 ## Shore Commands
 
